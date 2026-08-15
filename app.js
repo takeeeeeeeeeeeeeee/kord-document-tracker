@@ -21,7 +21,6 @@
   const closeDetails = document.getElementById("closeDetails");
   const coordReadout = document.getElementById("coordReadout");
   const copyCoord = document.getElementById("copyCoord");
-
   const sidebar = document.getElementById("sidebar");
   const openSidebar = document.getElementById("openSidebar");
   const closeSidebar = document.getElementById("closeSidebar");
@@ -35,13 +34,13 @@
 
   const map = L.map("map", {
     crs: L.CRS.Simple,
-    minZoom: -3,
+    minZoom: -5,
     maxZoom: 2,
     zoomSnap: 0.25,
     attributionControl: true
   });
 
-  map.setMaxBounds([[-N * 1.3, -N * .3], [N * .3, N * 1.3]]);
+  map.setMaxBounds([[-N * 1.6, -N * .6], [N * .6, N * 1.6]]);
   map.fitBounds(bounds);
   L.control.attribution().addAttribution("KordMap / Tarkov community map assets");
 
@@ -55,8 +54,6 @@
   }
 
   function toLeafletXY(spawn) {
-    // data.jsでは x=左→右, y=上→下 の分かりやすい座標。
-    // Leaflet CRS.Simple は [lat, lng] = [-y, x]
     return [-spawn.y, spawn.x];
   }
 
@@ -96,31 +93,47 @@
   function renderSpawns() {
     if (markersLayer) markersLayer.clearLayers();
 
-    const visible = DATA.spawns.filter(s =>
+    const matching = DATA.spawns.filter(s =>
       s.map === currentMapKey &&
-      activeTypes.has(s.type) &&
+      activeTypes.has(s.type)
+    );
+
+    const plotted = matching.filter(s =>
       Number.isFinite(s.x) &&
       Number.isFinite(s.y)
     );
 
-    spawnCount.textContent = String(visible.length);
-    hudSpawnCount.textContent = String(visible.length);
+    spawnCount.textContent = String(matching.length);
+    hudSpawnCount.textContent = String(plotted.length);
     spawnList.innerHTML = "";
 
-    if (!visible.length) {
+    if (!matching.length) {
       const p = document.createElement("p");
       p.className = "no-spawns";
-      p.textContent = "登録済みの湧き座標はありません。地図をタップして座標を確認し、data.js に追加してください。";
+      p.textContent = "このマップは現在、裏取り済みのスポーン情報を収集中です。座標が確定したものからピン表示します。";
       spawnList.appendChild(p);
       emptyState.classList.remove("hidden");
+    } else if (!plotted.length) {
+      emptyState.classList.remove("hidden");
+      emptyState.querySelector("strong").textContent = "場所情報あり / 座標は裏取り中";
+      emptyState.querySelector("span").textContent = "左メニューのSPAWNSに場所情報があります。正確な8192座標を確認できたものだけ地図にピン表示します。";
     } else {
       emptyState.classList.add("hidden");
     }
 
-    for (const spawn of visible) {
+    for (const spawn of plotted) {
       const marker = L.marker(toLeafletXY(spawn), { icon: markerIcon(), title: spawn.title });
       marker.on("click", () => openDetails(spawn));
       marker.addTo(markersLayer);
+    }
+
+    for (const spawn of matching) {
+      const hasCoords = Number.isFinite(spawn.x) && Number.isFinite(spawn.y);
+      const confidenceLabel = {
+        verified: "確定",
+        community: "コミュニティ",
+        area: "エリア"
+      }[spawn.confidence] || "";
 
       const card = document.createElement("button");
       card.type = "button";
@@ -128,9 +141,14 @@
       card.innerHTML = `
         <span class="spawn-card-title">${escapeHtml(spawn.title)}</span>
         <span class="spawn-card-meta">${escapeHtml(spawn.type)}${spawn.floor ? " · " + escapeHtml(spawn.floor) : ""}</span>
+        ${confidenceLabel ? `<span class="confidence-badge confidence-${escapeHtml(spawn.confidence)}">${escapeHtml(confidenceLabel)}</span>` : ""}
+        ${!hasCoords ? `<span class="confidence-badge coord-pending">座標未確定</span>` : ""}
       `;
+
       card.addEventListener("click", () => {
-        map.flyTo(toLeafletXY(spawn), Math.max(map.getZoom(), -0.3), { duration: .5 });
+        if (hasCoords) {
+          map.flyTo(toLeafletXY(spawn), Math.max(map.getZoom(), -0.3), { duration: .5 });
+        }
         openDetails(spawn);
         closeMobileSidebar();
       });
@@ -142,11 +160,21 @@
     detailsType.textContent = spawn.type || "";
     detailsTitle.textContent = spawn.title || "";
     detailsDescription.textContent = spawn.description || "説明なし";
+
+    const confidenceLabel = {
+      verified: "確定",
+      community: "コミュニティ",
+      area: "エリア情報"
+    }[spawn.confidence] || null;
+
     const meta = [
       spawn.floor ? `Floor: ${spawn.floor}` : null,
       typeof spawn.keyRequired === "boolean" ? `Key: ${spawn.keyRequired ? "Required" : "No"}` : null,
-      `x: ${Math.round(spawn.x)}, y: ${Math.round(spawn.y)}`
+      confidenceLabel ? `確度: ${confidenceLabel}` : null,
+      spawn.source ? `Source: ${spawn.source}` : null,
+      Number.isFinite(spawn.x) && Number.isFinite(spawn.y) ? `x: ${Math.round(spawn.x)}, y: ${Math.round(spawn.y)}` : "座標: 未確定"
     ].filter(Boolean);
+
     detailsMeta.textContent = meta.join(" · ");
     detailsSheet.classList.remove("hidden");
   }
@@ -158,15 +186,10 @@
   function loadCurrentMap() {
     const cfg = DATA.maps[currentMapKey];
 
-    if (svgLayer) {
-      map.removeLayer(svgLayer);
-      svgLayer = null;
-    }
-    if (markersLayer) {
-      map.removeLayer(markersLayer);
-    }
-    markersLayer = L.layerGroup().addTo(map);
+    if (svgLayer) map.removeLayer(svgLayer);
+    if (markersLayer) map.removeLayer(markersLayer);
 
+    markersLayer = L.layerGroup().addTo(map);
     svgLayer = L.imageOverlay(cfg.mapUrl, bounds, {
       interactive: false,
       opacity: 1,
@@ -196,9 +219,7 @@
       const old = copyCoord.textContent;
       copyCoord.textContent = "COPIED";
       setTimeout(() => copyCoord.textContent = old, 900);
-    } catch {
-      copyCoord.textContent = "SELECT";
-    }
+    } catch {}
   });
 
   mapSelect.addEventListener("change", () => {
@@ -240,7 +261,6 @@
 
   fillMapSelect();
   loadCurrentMap();
-
   setTimeout(() => map.invalidateSize(), 80);
   window.addEventListener("resize", () => map.invalidateSize());
 })();

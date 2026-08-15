@@ -1,9 +1,3 @@
-// KORD Document Tracker static data
-// DBなし / localStorageなし。
-// 湧き位置は `spawns` に直書きしてください。
-// 座標系は KordMap と同じ 8192 x 8192 のシンプル座標。
-// map上をタップすると x/y を確認できます。
-
 window.KORD_DATA = {
   nativeSize: 8192,
 
@@ -70,19 +64,80 @@ window.KORD_DATA = {
     }
   },
 
-  // 例:
-  // {
-  //   id: "customs-fin-001",
-  //   map: "Customs",
-  //   type: "Financial documents",
-  //   title: "Crackhouse 2F",
-  //   description: "本棚付近。位置を確認してから座標を入れる。",
-  //   x: 5100,
-  //   y: 4200,
-  //   floor: "2F",
-  //   keyRequired: false
-  // }
-  //
-  // ※ x/y の例はサンプルです。実際の湧き座標として使用しないでください。
-  spawns: []
+  /*
+    confidence:
+      verified  = multiple/strong evidence + coordinate confirmed
+      community = concrete community/guide report, coordinate not necessarily confirmed
+      area      = area/building-level report only
+
+    x/y are intentionally omitted until the point is confirmed against the 8192 map coordinate system.
+    The UI will still show these entries as "座標未確定".
+  */
+  spawns: [
+    {
+      id: "customs-fin-2story-dorms-guard-desk",
+      map: "Customs",
+      type: "Financial documents",
+      title: "2-story Dorms entrance guard desk",
+      description: "2階建て寮の入口にある警備員デスク。Financial documents の発見報告あり。",
+      floor: "1F / entrance",
+      keyRequired: false,
+      confidence: "community",
+      source: "Escorenews (2026-08-04)"
+    },
+    {
+      id: "customs-fin-red-warehouse-area",
+      map: "Customs",
+      type: "Financial documents",
+      title: "Red Customs warehouse / office area",
+      description: "赤倉庫（Big Red）側のFinancial documents候補。攻略記事でも候補として挙げられているが、種類固定は未確認。",
+      floor: "Office area",
+      keyRequired: false,
+      confidence: "area",
+      source: "Escorenews preliminary community map (2026-08-04)"
+    },
+    {
+      id: "factory-doc-office-desk-filecabinet",
+      map: "Factory",
+      type: "Project documentation",
+      title: "Office desk / file cabinet area",
+      description: "Factoryのオフィス系デスク周辺。机の側面、机とファイルキャビネットの間にもスポーン報告あり。",
+      floor: "Office area",
+      keyRequired: false,
+      confidence: "community",
+      source: "Escorenews (2026-08-04)"
+    },
+    {
+      id: "factory-blueprint-office-desk-filecabinet",
+      map: "Factory",
+      type: "Blueprints and technical documentation",
+      title: "Office desk / file cabinet area",
+      description: "FactoryではBlueprints and technical documentationも複数地点に出現。記事のスクリーンショット群でオフィス/デスク周辺のスポーンが報告されている。",
+      floor: "Office area",
+      keyRequired: false,
+      confidence: "community",
+      source: "Escorenews (2026-08-04)"
+    }
+  ],
+
+  evidence: [
+    {
+      id: "bsg-battlepass-docs",
+      label: "Battlestate Games official announcement",
+      note: "Kord Breach Battle Pass progression uses TerraGroup documentation found during raids; loot behaves similarly to task items for multiple players.",
+      url: "https://t.me/s/escapefromtarkovEN"
+    },
+    {
+      id: "escorenews-customs",
+      label: "Escorenews - Customs KORD documents",
+      note: "Financial documents reported at the guard desk at the entrance of 2-story Dorms; preliminary Customs community map.",
+      url: "https://escorenews.com/en/article/80029-where-to-find-financial-documents-for-battle-pass-in-tarkov-documentation-spawn-locations-on-customs"
+    },
+    {
+      id: "escorenews-factory",
+      label: "Escorenews - Factory KORD documents",
+      note: "Project documentation and Blueprints and technical documentation spawn on Factory; multiple user-found spawn screenshots, including desk/file-cabinet area.",
+      url: "https://escorenews.com/en/article/80013-where-to-find-documents-on-factory-for-tarkov-s-battle-pass-project-documentation-and-blueprints-and-technical-documentation-spawn-points"
+    }
+  ]
 };

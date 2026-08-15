@@ -1,69 +1,28 @@
-# KORD Document Tracker
+# KORD Document Tracker — Evidence-first build
 
-Escape from Tarkov / KORD BREACH 用の静的ドキュメント湧き位置マップです。
+全12マップ定義済み。未確認座標を捏造せず、場所だけ裏取りできた情報は `座標未確定` として一覧表示します。
 
-## 方針
+## 現在入っている具体的なエビデンス
 
-- DBなし
-- localStorageなし
-- ビルドなし
-- GitHub Pagesだけで公開可能
-- `data.js` に湧き位置を直書き
-- PC / スマホのレスポンシブ対応
-- Leaflet + SVGマップ
-- KordMapと同じ 8192 x 8192 のシンプル座標系
+- Customs
+  - Financial documents: 2-story Dorms entrance guard desk — community report
+  - Big Red / Red Customs warehouse area — preliminary area report
+- Factory
+  - Project documentation / Blueprints and technical documentation — multiple user-found spawn screenshots
+  - Desk / file cabinet office area — explicit spawn report
 
-## GitHub Pages 公開
+## Evidence policy
 
-スマホのGitHubでこの4ファイルをリポジトリ直下にアップロードしてください。
+- `verified`: 正確な8192座標まで確認済み
+- `community`: 具体的な発見報告があるが座標変換未確定
+- `area`: 建物/エリア単位のみ確認
+- x/yはKordMap等の座標データと一致確認できた時だけ追加
 
-- `index.html`
-- `styles.css`
-- `data.js`
-- `app.js`
+## Sources
 
-その後:
+- Battlestate Games official Kord Breach announcement
+- Escorenews Customs guide, 2026-08-04
+- Escorenews Factory guide, 2026-08-04
+- KordMap / community map sources for future coordinate reconciliation
 
-1. Repository の `Settings`
-2. `Pages`
-3. `Build and deployment`
-4. Source: `Deploy from a branch`
-5. Branch: `main`
-6. Folder: `/ (root)`
-7. `Save`
-
-公開URLは通常:
-
-`https://<GitHub-ID>.github.io/kord-document-tracker/`
-
-## 湧き位置を追加
-
-`data.js` の `spawns` に追加します。
-
-```js
-{
-  id: "customs-fin-001",
-  map: "Customs",
-  type: "Financial documents",
-  title: "Crackhouse 2F",
-  description: "本棚付近",
-  x: 5000,
-  y: 4000,
-  floor: "2F",
-  keyRequired: false
-}
-```
-
-`x/y` は地図上をタップすると画面左の Coordinate Helper に表示されます。
-
-> READMEやdata.jsに書いてあるサンプル座標は説明用です。実際の湧き位置として使わないでください。
-
-## Credits
-
-Map configuration is based on the public KordMap project and its credited community map sources.
-
-- KordMap: `KalleLeskinen/KordMap`
-- Tarkov.dev SVG maps: `the-hideout/tarkov-dev-svg-maps`
-- Some custom maps credited by KordMap to reemr.se
-
-This is an unofficial community tool and is not affiliated with Battlestate Games.
+This project is an unofficial community tool and is not affiliated with Battlestate Games.
